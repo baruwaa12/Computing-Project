@@ -10,8 +10,20 @@ There are currently 6 tasks which need to be developed for me to complete this g
   5. Death
   6. Scoring
   7. Addition of Levels (Extra)
+  8. Creation of a charcter.
   
-  Note. After each stage of development, Make sure to record here what was done to complete it.
+
+  First stage of development - Scrolling background.
+  
+  Since I am creating a flappy bird clone. The first thing I noticed with the game was the fact that it had a parallax effect. I collected 2 images. The skyline where you can see the buildings in the distanc andthe actual foreground.
+  The skyline background would move the slowest to give the player the impression that there is considerable distance between skyline and foreground. Then the foreground background would move the fastest to show that player is moving at a reasonable speed over the ground
+ 
+ 
+ Second stage of development - Bird Flight
+ 
+  
+  Note. After each stage of development, Make sure to record it,
+  
 
 
 
