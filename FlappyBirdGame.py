@@ -4,6 +4,7 @@ from random import randint
 from collections import deque
 
 import pygame
+import self as self
 from pygame.locals import *
 
 FPS = 60
@@ -99,31 +100,43 @@ class PipePair:
         # top_pieces - The number of pieces which make up the top pipe.
         # bottom_pieces - The number of pieces which make up the bottom pipe.
 
-        self.x = WIN_WIDTH
-        self.surface = surface
-        self.top_pieces = top_pieces
-        self.bottom_pieces = bottom_pieces
+        self.x = float(WIN_WIDTH - 1)
         self.score_counted = False
+        self.image = pygame.Surface((PipePair.WIDTH, WIN_HEIGHT), SRCALPHA)
+        self.image.convert()
+        self.image.fill((0, 0, 0, 0))
+        total_pipe_body_pieces = int(
+            (WIN_HEIGHT -
+             3 * Bird.HEIGHT -
+             3 * PipePair.PIECE_HEIGHT) /
+            PipePair.PIECE_HEIGHT
+        )
+        self.bottom_pieces = randint(1, total_pipe_body_pieces)
+        self.top_pieces = total_pipe_body_pieces - self.bottom_pieces
 
+    # bottom pipe
+    for i in range(1, self.bottom_piece + 1):
+        piece_pos = (0, WIN_HEIGHT - i*PipePair.PIECE_HEIGHT)
+        self.image.blit(pipe_body_img, piece_pos)
+    bottom_pipe_end_y = WIN_HEIGHT - self.bottom_height_px
+    bottom_end_piece_pos = (0, bottom_pipe_end_y - PipePair.PIECE_HEIGHT)
+    self.image.blit(pipe_end_img, bottom_end_pice_pos)
+
+    # top pipe
+    for i in range(self.top_pieces):
+        self.image.blit(pipe_body_img, (0, i * PipePair.PIECE_HEIGHT))
+    top_pipe_end_y = self.top_height_px
+    self.image.blit(pipe_end_img, (0, top_pipe_end_y))
+
+    # compensate for added end pieces
+    self.top_pieces += 1
+    self.bottom_pieces += 1
+
+    # for collision detection
+    self.mask = pygame.mask.from_surface(self.image)
 
 def top_height_px(self):
-    # Returns the top pipe's height, in pixels.
-    return self.top_pieces * PIPE_PIECE_HEIGHT
-
-
-def bottom_height_px(self):
-    # Returns the bottom pipe's height, in pixels
-    return self.bottom_pieces * PIPE_PIECE_HEIGHT
-
-
-def is_bird_collision(self, bird_position):
-    # bird_position: The bird's position on screen, as a tuple in the form (X, Y).
-    bx, by = bird_position
-    in_x_range = bx + BIRD_WIDTH.self.x and bx < self.x + PIPE_WIDTH
-    in_y_range = (by < self.top_height_px or
-                  by + BIRD_HEIGHT > WIN_HEIGHT - self, bottom_height_px)
-    return in_x_range and in_y_range
-
+    return self.bottom_pieces * PipePair
 
 def load_images():
     # Load all images required by the game and return a dict of them.
@@ -155,22 +168,12 @@ def random_pipe_pair(pipe_end_img, pipe_body_img):
     # pipe_end_img - this is the image used for the pipes end piece
     # pipe_body_img - this is the image used for the pipes centre piece
 
-    surface = pygame.Surface((PIPE_WIDTH, WIN_HEIGHT), SRCALPHA)
-    surface.convert()
-    surface.fill((0, 0, 0, 0))
-    max_pipe_body_pieces = int(
-        (WIN_HEIGHT -
-         (3 * BIRD_HEIGHT) -
-         (3 * PIPE_PIECE_HEIGHT) /
-        PIPE_PIECE_HEIGHT
-    ))
-    bottom_pipe_pieces = randint(1, max_pipe_body_pieces)
-    top_pipe_pieces = max_pipe_body_pieces - bottom_pipe_pieces
+
 
 
 # Crashs when you get touch a quarter of the screen
     # bottom pipe
-    for i in range(1, bottom_pipe_pieces + 1):
+    for i in range(1, self.bottom_pieces + 1):
         print(WIN_HEIGHT - i * PIPE_PIECE_HEIGHT)
         surface.blit(pipe_body_img, (WIN_HEIGHT - i * PIPE_PIECE_HEIGHT))
     bottom_pipe_end_y = WIN_HEIGHT - bottom_pipe_pieces * PIPE_PIECE_HEIGHT
