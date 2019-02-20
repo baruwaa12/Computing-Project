@@ -1,6 +1,7 @@
 import math
 import os
 from random import randint
+from collections import deque
 
 import pygame
 import self
@@ -30,7 +31,7 @@ class Bird(pygame.sprite.Sprite):
     CLIMB_SPEED = 0.3
     CLIMB_DURATION = 333.3
 
-    def __init__(self, x, y, millisecond_to_climb, images):
+    def __init__(self, x: object, y: object, millisecond_to_climb: object, images: object) -> object:
 
         super(Bird, self).__init__()
         self.x, self.y = x, y
@@ -68,7 +69,7 @@ class Bird(pygame.sprite.Sprite):
         return Rect(self.x, self.y, Bird.WiDTH, Bird.HEIGHT)
 
 
-class PipePair(pygame.sprite.Sprite, self):
+class PipePair(pygame.sprite.Sprite):
 
     # Represents an obstacle.
 
@@ -93,7 +94,7 @@ class PipePair(pygame.sprite.Sprite, self):
     PIECE_HEIGHT = 32
     ADD_INTERVAL = 3000
 
-    #def __init__(self, pipe_end_img, pipe_body_img):
+    def __init__(self, pipe_end_img, pipe_body_img):
 
         # The new PipePair will automatically be assigned an x attribute of WIN_WIDTH
         # top_pieces - The number of pieces which make up the top pipe.
@@ -118,14 +119,14 @@ class PipePair(pygame.sprite.Sprite, self):
         for i in range(1, self.bottom_pieces + 1):
             piece_pos = (0, WIN_HEIGHT - i * PipePair.PIECE_HEIGHT)
             self.image.blit(pipe_body_img, piece_pos)
-            bottom_pipe_end_y = WIN_HEIGHT - self.bottom_height_px
+            bottom_pipe_end_y = WIN_HEIGHT - self.bottom_pieces
             bottom_end_piece_pos = (0, bottom_pipe_end_y - PipePair.PIECE_HEIGHT)
             self.image.blit(pipe_end_img, bottom_end_piece_pos)
 
     # top pipe
         for i in range(self.top_pieces):
             self.image.blit(pipe_body_img, (0, i * PipePair.PIECE_HEIGHT))
-        top_pipe_end_y = self.top_height_px
+        top_pipe_end_y = self.top_pieces
         self.image.blit(pipe_end_img, (0, top_pipe_end_y))
 
     # compensate for added end pieces
@@ -136,19 +137,19 @@ class PipePair(pygame.sprite.Sprite, self):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-def top_height_px(self):
+def top_height_px():
     return self.top_pieces * PipePair.PIECE_HEIGHT
 
 
-def bottom_height_px(self):
+def bottom_height_px():
     return self.bottom_pieces * PipePair.PIECE_HEIGHT
 
 
-def visible(self):
+def visible():
     return -PipePair.WIDTH < self.x < WIN_WIDTH
 
 
-def rect(self):
+def rect():
     return Rect(self.x, 0, PipePair.WIDTH, PipePair.PIECE_HEIGHT)
 
 
@@ -191,21 +192,25 @@ def main():
 
     clock = pygame.time.Clock()
     score_font = pygame.font.SysFont(None, 32, bold=True)
-    # the bird stays in the same x position, so bird_x is a constant
-    bird_x = 50
-    bird_y = int(WIN_HEIGHT / 2 - BIRD_HEIGHT / 2)  # center bird on screen
-
     images = load_images()
 
-    # timer for adding new pipes
-    pygame.time.set_timer(EVENT_NEW_PIPE, PIPE_ADD_INTERVAL)
-    pipes = []
+    # the bird stays in the same x position, so bird_x is a constant
+    # center bird on screen
+    bird = Bird(50, int(WIN_HEIGHT/2 - Bird.HEIGHT/2), 2,
+                (images['bird_wing_up'], images['bird_wing_down']))
 
-    steps_to_jump = 2
+    pipes = deque()
+
+    frame_clock = 0
     score = 0
     done = paused = False
-
     while not done:
+        clock.tick(FPS)
+
+        if not (paused or frame_clock % millisecond_to_frames(PipePair.ADD_INTERVAL)):
+            pp = PipePair(images['pipe-end'], images['pipe-body'])
+            pipes.append(pp)
+
         for e in pygame.event.get():
             if e.type == QUIT or (e.type == KEYUP and e.key == K_ESCAPE):
                 done = True
@@ -213,58 +218,41 @@ def main():
             elif e.type == KEYUP and e.key in (K_PAUSE, K_p):
                 paused = not paused
             elif e.type == MOUSEBUTTONUP or (e.type == KEYUP and
-                                             e.key in (K_UP, K_RETURN, K_SPACE)):
-                steps_to_jump = BIRD_JUMP_STEPS
-            elif e.type == EVENT_NEW_PIPE:
-                pp = random_pipe_pair(images['pipe-end'], images['pipe-body'])
-                pipes.append(pp)
+                    e.key in (K_UP, K_RETURN, K_SPACE)):
+                bird.millisecond_to_climb = Bird.CLIMB_DURATION
 
-        clock.tick(FPS)
         if paused:
             continue  # don't draw anything
+        pipe_collision = any(p.collides_with(bird) for p in pipes)
+        if pipe_collision or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
+            done = True
 
         for x in (0, WIN_WIDTH / 2):
             display_surface.blit(images['background'], (x, 0))
 
+        while pipes and not pipes[0].visible:
+            pipes.popleft()
+
         for p in pipes:
-            p.x -= FRAME_ANIMATION_WIDTH
-            if p.x <= -PIPE_WIDTH:  # PipePair is off screen
-                pipes.remove(p)
-            else:
-                display_surface.blit(p.surface, (p.x, 0))
+            p.update()
+            display_surface.blit(p.image, p.rect)
 
-            # calculate position of jumping bird
-        if steps_to_jump > 0:
-            bird_y -= get_frame_jump_height(BIRD_JUMP_STEPS - steps_to_jump)
-            steps_to_jump -= 1
-        else:
-            bird_y += FRAME_BIRD_DROP_HEIGHT
-
-            # because pygame doesn't support animated GIFs, we have to
-            # animate the flapping bird ourselves
-        if pygame.time.get_ticks() % 500 >= 250:
-            display_surface.blit(images['bird_wing_up'], (bird_x, bird_y))
-        else:
-            display_surface.blit(images['bird_wing_down'], (bird_x, bird_y))
+        bird.update()
+        display_surface.blit(bird.image, bird.rect)
 
         # update and display the score
         for p in pipes:
-            if p.x + PIPE_WIDTH < bird_x and not p.score_counted:
+            if p.x + PipePair.WIDTH < bird.x and not p.score_counted:
                 score += 1
                 p.score_counted = True
 
         score_surface = score_font.render(str(score), True, (255, 255, 255))
-        score_x = WIN_WIDTH / 2 - score_surface.get_width() / 2
-        display_surface.blit(score_surface, (score_x, PIPE_PIECE_HEIGHT))
+        score_x = WIN_WIDTH/2 - score_surface.get_width()/2
+        display_surface.blit(score_surface, (score_x, PipePair.PIECE_HEIGHT))
 
-        pygame.display.update()
-
-        # collision detection
-        pipe_collisions = [p.is_bird_collision((bird_x, bird_y)) for p in pipes]
-        if (0 >= bird_y or bird_y >= WIN_HEIGHT - BIRD_HEIGHT or
-                True in pipe_collisions):
-            print('You crashed')
-            break
+        pygame.display.flip()
+        frame_clock += 1
+    print('Game over! Score: %i' % score)
     pygame.quit()
 
 
