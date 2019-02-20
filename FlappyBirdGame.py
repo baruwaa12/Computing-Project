@@ -1,10 +1,9 @@
 import math
 import os
 from random import randint
-from collections import deque
 
 import pygame
-import self as self
+import self
 from pygame.locals import *
 
 FPS = 60
@@ -17,7 +16,7 @@ class Bird(pygame.sprite.Sprite):
     # Attributes:
     # x: The bird's X coordinate
     # y: The bird's Y coordinate
-    # msec_to_climb: The number of millisecond left during a climb, where a complete climb lasts Bird.Climb_Duration
+    # millisecond_to_climb: The number of millisecond left during a climb, where a complete climb lasts Bird.Climb_Duration
 
     # Constants:
     # WIDTH: The width, in pixels, of the bird's image.
@@ -46,9 +45,9 @@ class Bird(pygame.sprite.Sprite):
         # Arguments: delta_frames the number of frames elasped since this method was last called.
 
         if self.millisecond_to_climb > 0:
-            frac_climb_done = 1 - self.millisecond_to_climb/Bird.CLIMB_DURATION
+            fraction_climb_done = 1 - self.millisecond_to_climb/Bird.CLIMB_DURATION
             self.y -= (Bird.CLIMB_SPEED * frames_to_millisecond(delta_frames) *
-                       (1 - math.cos(frac_climb_done * math.pi)))
+                       (1 - math.cos(fraction_climb_done * math.pi)))
             self.millisecond_to_climb -= frames_to_millisecond(delta_frames)
         else:
             self.y += Bird.SINK_SPEED * frames_to_millisecond(delta_frames)
@@ -69,7 +68,7 @@ class Bird(pygame.sprite.Sprite):
         return Rect(self.x, self.y, Bird.WiDTH, Bird.HEIGHT)
 
 
-class PipePair:
+class PipePair(pygame.sprite.Sprite, self):
 
     # Represents an obstacle.
 
@@ -94,7 +93,7 @@ class PipePair:
     PIECE_HEIGHT = 32
     ADD_INTERVAL = 3000
 
-    def __init__(self, pipe_end_img, pipe_body_img):
+    #def __init__(self, pipe_end_img, pipe_body_img):
 
         # The new PipePair will automatically be assigned an x attribute of WIN_WIDTH
         # top_pieces - The number of pieces which make up the top pipe.
@@ -102,6 +101,7 @@ class PipePair:
 
         self.x = float(WIN_WIDTH - 1)
         self.score_counted = False
+
         self.image = pygame.Surface((PipePair.WIDTH, WIN_HEIGHT), SRCALPHA)
         self.image.convert()
         self.image.fill((0, 0, 0, 0))
@@ -115,28 +115,46 @@ class PipePair:
         self.top_pieces = total_pipe_body_pieces - self.bottom_pieces
 
     # bottom pipe
-    for i in range(1, self.bottom_piece + 1):
-        piece_pos = (0, WIN_HEIGHT - i*PipePair.PIECE_HEIGHT)
-        self.image.blit(pipe_body_img, piece_pos)
-    bottom_pipe_end_y = WIN_HEIGHT - self.bottom_height_px
-    bottom_end_piece_pos = (0, bottom_pipe_end_y - PipePair.PIECE_HEIGHT)
-    self.image.blit(pipe_end_img, bottom_end_pice_pos)
+        for i in range(1, self.bottom_pieces + 1):
+            piece_pos = (0, WIN_HEIGHT - i * PipePair.PIECE_HEIGHT)
+            self.image.blit(pipe_body_img, piece_pos)
+            bottom_pipe_end_y = WIN_HEIGHT - self.bottom_height_px
+            bottom_end_piece_pos = (0, bottom_pipe_end_y - PipePair.PIECE_HEIGHT)
+            self.image.blit(pipe_end_img, bottom_end_piece_pos)
 
     # top pipe
-    for i in range(self.top_pieces):
-        self.image.blit(pipe_body_img, (0, i * PipePair.PIECE_HEIGHT))
-    top_pipe_end_y = self.top_height_px
-    self.image.blit(pipe_end_img, (0, top_pipe_end_y))
+        for i in range(self.top_pieces):
+            self.image.blit(pipe_body_img, (0, i * PipePair.PIECE_HEIGHT))
+        top_pipe_end_y = self.top_height_px
+        self.image.blit(pipe_end_img, (0, top_pipe_end_y))
 
     # compensate for added end pieces
-    self.top_pieces += 1
-    self.bottom_pieces += 1
+        self.top_pieces += 1
+        self.bottom_pieces += 1
 
     # for collision detection
-    self.mask = pygame.mask.from_surface(self.image)
+        self.mask = pygame.mask.from_surface(self.image)
+
 
 def top_height_px(self):
-    return self.bottom_pieces * PipePair
+    return self.top_pieces * PipePair.PIECE_HEIGHT
+
+
+def bottom_height_px(self):
+    return self.bottom_pieces * PipePair.PIECE_HEIGHT
+
+
+def visible(self):
+    return -PipePair.WIDTH < self.x < WIN_WIDTH
+
+
+def rect(self):
+    return Rect(self.x, 0, PipePair.WIDTH, PipePair.PIECE_HEIGHT)
+
+
+def update(self, delta_frames=1):
+    self.x -= ANIMATION_SPEED * frames_to_millisecond(delta_frames)
+
 
 def load_images():
     # Load all images required by the game and return a dict of them.
@@ -155,38 +173,12 @@ def load_images():
             }
 
 
-def get_frame_jump_height(jump_step):
-    fraction_jump_done = jump_step / float(BIRD_JUMP_STEPS)
-    return (1 - math.cos(fraction_jump_done * math.pi)) * FRAME_BIRD_DROP_HEIGHT
+def frames_to_millisecond(frames, fps=FPS):
+    return 1000.0 * frames / fps
 
 
-def random_pipe_pair(pipe_end_img, pipe_body_img):
-    # This function produces a pipe obstacle with random heights
-    # The returned pipe surface will have a pipe pair with each pipe facing up and down
-
-    # Parameters used
-    # pipe_end_img - this is the image used for the pipes end piece
-    # pipe_body_img - this is the image used for the pipes centre piece
-
-
-
-
-# Crashs when you get touch a quarter of the screen
-    # bottom pipe
-    for i in range(1, self.bottom_pieces + 1):
-        print(WIN_HEIGHT - i * PIPE_PIECE_HEIGHT)
-        surface.blit(pipe_body_img, (WIN_HEIGHT - i * PIPE_PIECE_HEIGHT))
-    bottom_pipe_end_y = WIN_HEIGHT - bottom_pipe_pieces * PIPE_PIECE_HEIGHT
-    surface.blit(pipe_end_img, (0, bottom_pipe_end_y - PIPE_PIECE_HEIGHT))
-    # top pipe
-    for i in range(top_pipe_pieces):
-        surface.blit(pipe_body_img, (0, i * PIPE_PIECE_HEIGHT))
-    top_pipe_end_y = top_pipe_pieces * PIPE_PIECE_HEIGHT
-    surface.blit(pipe_end_img, (0, top_pipe_end_y))
-    # compensation for the added end pieces
-    top_pipe_pieces += 1
-    bottom_pipe_pieces += 1
-    return PipePair(surface, top_pipe_pieces, bottom_pipe_pieces)
+def millisecond_to_frames(milliseconds, fps=FPS):
+    return fps * milliseconds / 1000.0
 
 
 def main():
