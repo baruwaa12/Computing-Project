@@ -4,7 +4,6 @@ from random import randint
 from collections import deque
 
 import pygame
-import self
 from pygame.locals import *
 
 FPS = 60
@@ -17,7 +16,7 @@ class Bird(pygame.sprite.Sprite):
     # Attributes:
     # x: The bird's X coordinate
     # y: The bird's Y coordinate
-    # millisecond_to_climb: The number of millisecond left during a climb, where a complete climb lasts Bird.Climb_Duration
+    # millisecond_to_climb: The number of milliseconds left during a climb, where a complete climb lasts Bird.Climb_Duration
 
     # Constants:
     # WIDTH: The width, in pixels, of the bird's image.
@@ -31,7 +30,7 @@ class Bird(pygame.sprite.Sprite):
     CLIMB_SPEED = 0.3
     CLIMB_DURATION = 333.3
 
-    def __init__(self, x: object, y: object, millisecond_to_climb: object, images: object) -> object:
+    def __init__(self, x, y, millisecond_to_climb, images):
 
         super(Bird, self).__init__()
         self.x, self.y = x, y
@@ -53,18 +52,21 @@ class Bird(pygame.sprite.Sprite):
         else:
             self.y += Bird.SINK_SPEED * frames_to_millisecond(delta_frames)
 
+    @property
     def image(self):
         if pygame.time.get_ticks() % 500 >= 250:
             return self._img_wing_up
         else:
             return self._img_wing_down
 
+    @property
     def mask(self):
         if pygame.time.get_ticks() % 500 >= 250:
             return self._mask_wing_up
         else:
             return self._mask_wing_down
 
+    @property
     def rect(self):
         return Rect(self.x, self.y, Bird.WiDTH, Bird.HEIGHT)
 
@@ -136,25 +138,27 @@ class PipePair(pygame.sprite.Sprite):
     # for collision detection
         self.mask = pygame.mask.from_surface(self.image)
 
+    @property
+    def top_height_px(self):
+        return self.top_pieces * PipePair.PIECE_HEIGHT
 
-def top_height_px():
-    return self.top_pieces * PipePair.PIECE_HEIGHT
+    @property
+    def bottom_height_px(self):
+        return self.bottom_pieces * PipePair.PIECE_HEIGHT
 
+    @property
+    def visible(self):
+        return -PipePair.WIDTH < self.x < WIN_WIDTH
 
-def bottom_height_px():
-    return self.bottom_pieces * PipePair.PIECE_HEIGHT
+    def update(self, delta_frames=1):
+        self.x -= ANIMATION_SPEED * frames_to_millisecond(delta_frames)
 
+    @property
+    def rect(self):
+        return Rect(self.x, 0, PipePair.WIDTH, PipePair.PIECE_HEIGHT)
 
-def visible():
-    return -PipePair.WIDTH < self.x < WIN_WIDTH
-
-
-def rect():
-    return Rect(self.x, 0, PipePair.WIDTH, PipePair.PIECE_HEIGHT)
-
-
-def update(self, delta_frames=1):
-    self.x -= ANIMATION_SPEED * frames_to_millisecond(delta_frames)
+    def collides_with(self, bird, pipe):
+        return pygame.sprite.collide_mask(bird , pipe)
 
 
 def load_images():
@@ -162,7 +166,7 @@ def load_images():
 
     def load_image(img_file_name):
         file_name = os.path.join('.', 'images', img_file_name)
-        img = pygame.image.load(img_file_name)
+        img = pygame.image.load(file_name)
         img.convert()
         return img
 
@@ -223,7 +227,7 @@ def main():
 
         if paused:
             continue  # don't draw anything
-        pipe_collision = any(p.collides_with(bird) for p in pipes)
+        pipe_collision = any(p.collides_with(bird, p) for p in pipes)
         if pipe_collision or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
             done = True
 
