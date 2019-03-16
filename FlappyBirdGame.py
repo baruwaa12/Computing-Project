@@ -219,10 +219,10 @@ def game_intro():
                 quit()
         display_surface.fill(white)
 
-        largeText = pygame.font.Font('freesansbold.ttf', 115)
-        TextSurf, TextRect = text_objects("A bit Racey", largeText)
-        TextRect.center = ((WIN_WIDTH/2),(WIN_HEIGHT/2))
-        display_surface.blit(TextSurf, TextRect)
+        large_text = pygame.font.Font('freesansbold.ttf', 100)
+        text_surf, text_rect = text_objects("Flappy Bird", large_text)
+        text_rect.center = ((WIN_WIDTH/2),(WIN_HEIGHT/2))
+        display_surface.blit(text_surf, text_rect)
         pygame.display.update()
         clock.tick(15)
 
@@ -230,19 +230,9 @@ def game_intro():
 def main():
     # The application's entry point
 
-    # pygame.init()
-
     pygame.display.set_caption('Pygame Flappy Bird')
     score_font = pygame.font.SysFont(None, 32, bold=True)
     images = load_images()
-
-    # def message_display(text):
-    #     large_text = pygame.font.Font('freesansbold.ttf', 115)
-    #     text_surf, text_rect = text_objects(text, large_text)
-    #     text_rect.center = ((WIN_WIDTH/2), (WIN_HEIGHT/2))
-    #     display_surface.blit(text_surf, text_rect)
-    #
-    #     pygame.display.update()
 
     # the bird stays in the same x position, so bird_x is a constant
     # center bird on screen
@@ -273,8 +263,9 @@ def main():
 
         if paused:
             continue  # don't draw anything
-        pipe_collision = any(p.collides_with(bird, p) for p in pipes)
-        if pipe_collision or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
+            
+        vertical_out_of_bounds = any(p.collides_with(bird, p) for p in pipes)
+        if vertical_out_of_bounds or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
             done = True
 
         for x in (0, WIN_WIDTH / 2):
@@ -292,7 +283,7 @@ def main():
 
         # Pending menu screen
         # mouse = pygame.mouse.get_pos
-        #
+
         # if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
         #     pygame.draw.rect(display_surface, bright_green, (150,450,100,50))
         # else:
@@ -314,7 +305,6 @@ def main():
         pygame.display.flip()
         frame_clock += 1
     print('Game over! Score: %i' % score)
-    # game_intro()
     pygame.quit()
 
 
