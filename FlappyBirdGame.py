@@ -24,6 +24,8 @@ FPS = 60
 ANIMATION_SPEED = 0.18  # pixels per millisecond
 WIN_WIDTH = 284 * 2
 WIN_HEIGHT = 512
+display_surface = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+clock = pygame.time.Clock()
 
 
 class Bird(pygame.sprite.Sprite):
@@ -172,7 +174,7 @@ class PipePair(pygame.sprite.Sprite):
         return Rect(self.x, 0, PipePair.WIDTH, PipePair.PIECE_HEIGHT)
 
     def collides_with(self, bird, pipe):
-        return pygame.sprite.collide_mask(bird , pipe)
+        return pygame.sprite.collide_mask(bird, pipe)
 
 
 def load_images():
@@ -200,18 +202,47 @@ def millisecond_to_frames(milliseconds, fps=FPS):
     return fps * milliseconds / 1000.0
 
 
+def text_objects(text, font):
+    text_surface = font.render(text, True, black)
+    return text_surface, text_surface.get_rect()
+
+
+def game_intro():
+
+    pygame.init()
+    intro = True
+
+    while intro:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+        display_surface.fill(white)
+
+        largeText = pygame.font.Font('freesansbold.ttf', 115)
+        TextSurf, TextRect = text_objects("A bit Racey", largeText)
+        TextRect.center = ((WIN_WIDTH/2),(WIN_HEIGHT/2))
+        display_surface.blit(TextSurf, TextRect)
+        pygame.display.update()
+        clock.tick(15)
+
 
 def main():
     # The application's entry point
 
-    pygame.init()
+    # pygame.init()
 
-    display_surface = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
     pygame.display.set_caption('Pygame Flappy Bird')
-
-    clock = pygame.time.Clock()
     score_font = pygame.font.SysFont(None, 32, bold=True)
     images = load_images()
+
+    # def message_display(text):
+    #     large_text = pygame.font.Font('freesansbold.ttf', 115)
+    #     text_surf, text_rect = text_objects(text, large_text)
+    #     text_rect.center = ((WIN_WIDTH/2), (WIN_HEIGHT/2))
+    #     display_surface.blit(text_surf, text_rect)
+    #
+    #     pygame.display.update()
 
     # the bird stays in the same x position, so bird_x is a constant
     # center bird on screen
@@ -239,15 +270,6 @@ def main():
             elif e.type == MOUSEBUTTONUP or (e.type == KEYUP and
                     e.key in (K_UP, K_RETURN, K_SPACE)):
                 bird.millisecond_to_climb = Bird.CLIMB_DURATION
-#            elif e.type == K_r
-
-    # while True:
-    #     main()
-    #     restart = input('Do you want to restart?')
-    #     if restart == 'Y':
-    #         break
-    #     elif restart == 'N':
-    #         continue
 
         if paused:
             continue  # don't draw anything
@@ -279,8 +301,6 @@ def main():
         # if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
         #     pygame.draw.rect(display_surface, bright_red, (450, 450, 100, 40))
 
-
-
         # update and display the score
         for p in pipes:
             if p.x + PipePair.WIDTH < bird.x and not p.score_counted:
@@ -294,8 +314,10 @@ def main():
         pygame.display.flip()
         frame_clock += 1
     print('Game over! Score: %i' % score)
+    # game_intro()
     pygame.quit()
 
 
 if __name__ == '__main__':
+    game_intro()
     main()
