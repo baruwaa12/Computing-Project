@@ -1,10 +1,24 @@
 import math
 import os
 from random import randint
-from collections import deque
+from collections import deque 
 
 import pygame
 from pygame.locals import *
+
+black = (0, 0, 0)
+white = (255, 255, 255)
+red = (255, 0, 0)
+green = (0, 200, 0)
+bright_green = (0, 180, 0)
+bright_red = (230, 0, 0)
+
+# Appropriate music to be found and played.z
+# PLAY BACKGROUND MUSIC
+# pygame.mixer_music.load("")
+# pygame.mixer_music.set_volume(0.5)
+# pygame.mixer_music.play(-1)
+
 
 FPS = 60
 ANIMATION_SPEED = 0.18  # pixels per millisecond
@@ -16,7 +30,7 @@ class Bird(pygame.sprite.Sprite):
     # Attributes:
     # x: The bird's X coordinate
     # y: The bird's Y coordinate
-    # millisecond_to_climb: The number of milliseconds left during a climb, where a complete climb lasts Bird.Climb_Duration
+    # millisecond_to_climb: milliseconds left during a climb, where a complete climb lasts Bird.Climb_Duration
 
     # Constants:
     # WIDTH: The width, in pixels, of the bird's image.
@@ -186,6 +200,7 @@ def millisecond_to_frames(milliseconds, fps=FPS):
     return fps * milliseconds / 1000.0
 
 
+
 def main():
     # The application's entry point
 
@@ -224,6 +239,15 @@ def main():
             elif e.type == MOUSEBUTTONUP or (e.type == KEYUP and
                     e.key in (K_UP, K_RETURN, K_SPACE)):
                 bird.millisecond_to_climb = Bird.CLIMB_DURATION
+#            elif e.type == K_r
+
+    # while True:
+    #     main()
+    #     restart = input('Do you want to restart?')
+    #     if restart == 'Y':
+    #         break
+    #     elif restart == 'N':
+    #         continue
 
         if paused:
             continue  # don't draw anything
@@ -243,6 +267,19 @@ def main():
 
         bird.update()
         display_surface.blit(bird.image, bird.rect)
+
+        # Pending menu screen
+        # mouse = pygame.mouse.get_pos
+        #
+        # if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
+        #     pygame.draw.rect(display_surface, bright_green, (150,450,100,50))
+        # else:
+        #     pygame.draw.rect(display_surface, green, (150,450,100,50))
+        #
+        # if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
+        #     pygame.draw.rect(display_surface, bright_red, (450, 450, 100, 40))
+
+
 
         # update and display the score
         for p in pipes:
