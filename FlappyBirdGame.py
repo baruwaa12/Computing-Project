@@ -227,12 +227,17 @@ def game_intro():
         # Pending menu screen
         mouse = pygame.mouse.get_pos()
 
-        if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
+        box_x_coordinate = 150
+        box_width = 150+100
+        box_height = 450+50
+        box_y_coordinate = 450
+
+        if box_width > mouse[0] > box_x_coordinate and box_height > mouse[1] > box_y_coordinate:
             pygame.draw.rect(display_surface, bright_green, (150,450,100,50))
         else:
             pygame.draw.rect(display_surface, green, (150,450,100,50))
         
-        if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
+        if box_width > mouse[0] > box_x_coordinate and box_height > mouse[1] > box_y_coordinate:
             pygame.draw.rect(display_surface, bright_red, (450, 450, 100, 40))
         else:
             pygame.draw.rect(display_surface, red, (450, 450, 100, 40))
