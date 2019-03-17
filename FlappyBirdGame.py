@@ -223,6 +223,20 @@ def game_intro():
         text_surf, text_rect = text_objects("Flappy Bird", large_text)
         text_rect.center = ((WIN_WIDTH/2),(WIN_HEIGHT/2))
         display_surface.blit(text_surf, text_rect)
+
+        # Pending menu screen
+        mouse = pygame.mouse.get_pos()
+
+        if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
+            pygame.draw.rect(display_surface, bright_green, (150,450,100,50))
+        else:
+            pygame.draw.rect(display_surface, green, (150,450,100,50))
+        
+        if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
+            pygame.draw.rect(display_surface, bright_red, (450, 450, 100, 40))
+        else:
+            pygame.draw.rect(display_surface, red, (450, 450, 100, 40))
+
         pygame.display.update()
         clock.tick(15)
 
@@ -288,7 +302,7 @@ def main():
         #     pygame.draw.rect(display_surface, bright_green, (150,450,100,50))
         # else:
         #     pygame.draw.rect(display_surface, green, (150,450,100,50))
-        #
+        
         # if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
         #     pygame.draw.rect(display_surface, bright_red, (450, 450, 100, 40))
 
