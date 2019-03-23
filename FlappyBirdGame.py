@@ -1,7 +1,7 @@
 import math
 import os
 from random import randint
-from collections import deque 
+from collections import deque
 
 import pygame
 from pygame.locals import *
@@ -13,7 +13,7 @@ green = (0, 200, 0)
 bright_green = (0, 180, 0)
 bright_red = (230, 0, 0)
 
-# Appropriate music to be found and played.z
+# Appropriate music to be found and played.
 # PLAY BACKGROUND MUSIC
 # pygame.mixer_music.load("")
 # pygame.mixer_music.set_volume(0.5)
@@ -138,7 +138,8 @@ class PipePair(pygame.sprite.Sprite):
             piece_pos = (0, WIN_HEIGHT - i * PipePair.PIECE_HEIGHT)
             self.image.blit(pipe_body_img, piece_pos)
             bottom_pipe_end_y = WIN_HEIGHT - self.bottom_pieces
-            bottom_end_piece_pos = (0, bottom_pipe_end_y - PipePair.PIECE_HEIGHT)
+            bottom_end_piece_pos = (
+                0, bottom_pipe_end_y - PipePair.PIECE_HEIGHT)
             self.image.blit(pipe_end_img, bottom_end_piece_pos)
 
     # top pipe
@@ -207,10 +208,34 @@ def text_objects(text, font):
     return text_surface, text_surface.get_rect()
 
 
+def button(msg, box_x_coordinate, box_y_coordinate, box_width, box_height, inactive_colour, active_colour, action=None):
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed() 
+
+
+    if (box_width + box_x_coordinate) > mouse[0] > box_x_coordinate and (box_height + box_y_coordinate) > mouse[1] > box_y_coordinate:
+        pygame.draw.rect(display_surface, active_colour, (box_x_coordinate, box_y_coordinate, box_width, box_height))
+        if click[0] == 1 and action != None:
+            if action == "play":
+                main()
+            elif action == "quit"
+                pygame.quit()
+                quit()
+    else:
+        pygame.draw.rect(display_surface, inactive_colour, (box_x_coordinate, box_y_coordinate, box_width, box_height))
+
+    small_text = pygame.font.Font("freesansbold.ttf", 20)
+    text_surf, text_rect = text_objects(msg, small_text)
+    text_rect.center = ((box_x_coordinate+(box_height/2)), (box_y_coordinate+(box_height/2)))
+    display_surface.blit(text_surf, text_rect)
+
+    
+
+
 def game_intro():
 
     pygame.init()
-    intro = True
+    intro=True
 
     while intro:
         for event in pygame.event.get():
@@ -219,28 +244,13 @@ def game_intro():
                 quit()
         display_surface.fill(white)
 
-        large_text = pygame.font.Font('freesansbold.ttf', 100)
-        text_surf, text_rect = text_objects("Flappy Bird", large_text)
-        text_rect.center = ((WIN_WIDTH/2),(WIN_HEIGHT/2))
+        large_text=pygame.font.Font('freesansbold.ttf', 100)
+        text_surf, text_rect=text_objects("Flappy Bird", large_text)
+        text_rect.center=((WIN_WIDTH/2), (WIN_HEIGHT/2))
         display_surface.blit(text_surf, text_rect)
 
-        # Pending menu screen
-        mouse = pygame.mouse.get_pos()
-
-        box_x_coordinate = 150
-        box_width = 150+100
-        box_height = 450+50
-        box_y_coordinate = 450
-
-        if box_width > mouse[0] > box_x_coordinate and box_height > mouse[1] > box_y_coordinate:
-            pygame.draw.rect(display_surface, bright_green, (150,450,100,50))
-        else:
-            pygame.draw.rect(display_surface, green, (150,450,100,50))
-        
-        if box_width > mouse[0] > box_x_coordinate and box_height > mouse[1] > box_y_coordinate:
-            pygame.draw.rect(display_surface, bright_red, (450, 450, 100, 40))
-        else:
-            pygame.draw.rect(display_surface, red, (450, 450, 100, 40))
+        button("GO", 100, 450, 80, 50, green, bright_green)
+        button("Quit", 400, 450, 80, 50, red, bright_red)
 
         pygame.display.update()
         clock.tick(15)
@@ -250,42 +260,42 @@ def main():
     # The application's entry point
 
     pygame.display.set_caption('Pygame Flappy Bird')
-    score_font = pygame.font.SysFont(None, 32, bold=True)
-    images = load_images()
+    score_font=pygame.font.SysFont(None, 32, bold = True)
+    images=load_images()
 
     # the bird stays in the same x position, so bird_x is a constant
     # center bird on screen
-    bird = Bird(50, int(WIN_HEIGHT/2 - Bird.HEIGHT/2), 2,
+    bird=Bird(50, int(WIN_HEIGHT/2 - Bird.HEIGHT/2), 2,
                 (images['bird_wing_up'], images['bird_wing_down']))
 
-    pipes = deque()
+    pipes=deque()
 
-    frame_clock = 0
-    score = 0
-    done = paused = False
+    frame_clock=0
+    score=0
+    done=paused=False
     while not done:
         clock.tick(FPS)
 
         if not (paused or frame_clock % millisecond_to_frames(PipePair.ADD_INTERVAL)):
-            pp = PipePair(images['pipe-end'], images['pipe-body'])
+            pp=PipePair(images['pipe-end'], images['pipe-body'])
             pipes.append(pp)
 
         for e in pygame.event.get():
             if e.type == QUIT or (e.type == KEYUP and e.key == K_ESCAPE):
-                done = True
+                done=True
                 break
             elif e.type == KEYUP and e.key in (K_PAUSE, K_p):
-                paused = not paused
+                paused=not paused
             elif e.type == MOUSEBUTTONUP or (e.type == KEYUP and
                     e.key in (K_UP, K_RETURN, K_SPACE)):
-                bird.millisecond_to_climb = Bird.CLIMB_DURATION
+                bird.millisecond_to_climb=Bird.CLIMB_DURATION
 
         if paused:
             continue  # don't draw anything
-            
-        vertical_out_of_bounds = any(p.collides_with(bird, p) for p in pipes)
+
+        vertical_out_of_bounds=any(p.collides_with(bird, p) for p in pipes)
         if vertical_out_of_bounds or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
-            done = True
+            done=True
 
         for x in (0, WIN_WIDTH / 2):
             display_surface.blit(images['background'], (x, 0))
@@ -300,25 +310,14 @@ def main():
         bird.update()
         display_surface.blit(bird.image, bird.rect)
 
-        # Pending menu screen
-        # mouse = pygame.mouse.get_pos
-
-        # if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
-        #     pygame.draw.rect(display_surface, bright_green, (150,450,100,50))
-        # else:
-        #     pygame.draw.rect(display_surface, green, (150,450,100,50))
-        
-        # if 150+100 > mouse[0] > 150 and 450+50 > mouse[1] > 450:
-        #     pygame.draw.rect(display_surface, bright_red, (450, 450, 100, 40))
-
         # update and display the score
         for p in pipes:
             if p.x + PipePair.WIDTH < bird.x and not p.score_counted:
                 score += 1
-                p.score_counted = True
+                p.score_counted=True
 
-        score_surface = score_font.render(str(score), True, (255, 255, 255))
-        score_x = WIN_WIDTH/2 - score_surface.get_width()/2
+        score_surface=score_font.render(str(score), True, (255, 255, 255))
+        score_x=WIN_WIDTH/2 - score_surface.get_width()/2
         display_surface.blit(score_surface, (score_x, PipePair.PIECE_HEIGHT))
 
         pygame.display.flip()
