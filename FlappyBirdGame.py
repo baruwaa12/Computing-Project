@@ -185,7 +185,8 @@ class Ring(pygame.sprite.Sprite):
     ADD_INTERVAL = 2000
 
     def __init__(self, ring_img):
-        
+
+        self.y = randint(10, 400)
         self.x = float(WIN_WIDTH - 1)
         self.score_counted = False
         self.image = pygame.Surface((Ring.WIDTH, Ring.HEIGHT), SRCALPHA)
@@ -208,7 +209,7 @@ class Ring(pygame.sprite.Sprite):
 
     @property
     def rect(self):
-        return Rect(self.x, 10, Ring.WIDTH, Ring.HEIGHT)
+        return Rect(self.x, self.y, Ring.WIDTH, Ring.HEIGHT)
 
     def collides_with(self, bird, ring):
         return pygame.sprite.collide_mask(bird, ring)
