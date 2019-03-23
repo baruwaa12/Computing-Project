@@ -218,7 +218,7 @@ def button(msg, box_x_coordinate, box_y_coordinate, box_width, box_height, inact
         if click[0] == 1 and action != None:
             if action == "play":
                 main()
-            elif action == "quit"
+            elif action == "quit":
                 pygame.quit()
                 quit()
     else:
@@ -249,8 +249,8 @@ def game_intro():
         text_rect.center=((WIN_WIDTH/2), (WIN_HEIGHT/2))
         display_surface.blit(text_surf, text_rect)
 
-        button("GO", 100, 450, 80, 50, green, bright_green)
-        button("Quit", 400, 450, 80, 50, red, bright_red)
+        button("GO", 100, 450, 80, 50, green, bright_green, "play")
+        button("Quit", 400, 450, 80, 50, red, bright_red, "quit")
 
         pygame.display.update()
         clock.tick(15)
