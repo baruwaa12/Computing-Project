@@ -178,6 +178,42 @@ class PipePair(pygame.sprite.Sprite):
         return pygame.sprite.collide_mask(bird, pipe)
 
 
+class Ring(pygame.sprite.Sprite):
+    WIDTH = 70
+    HEIGHT = 70
+    PIPE_WIDTH = 80
+    ADD_INTERVAL = 2000
+
+    def __init__(self, ring_img):
+        
+        self.x = float(WIN_WIDTH - 1)
+        self.score_counted = False
+        self.image = pygame.Surface((Ring.WIDTH, Ring.HEIGHT), SRCALPHA)
+        self.image.convert()
+        self.image.fill((0, 0, 0, 0))
+
+        # blit the ring.
+        piece_pos = (10, 15)
+        self.image.blit(ring_img, piece_pos)
+
+        # for collision detection
+        self.mask = pygame.mask.from_surface(self.image)
+    
+    @property
+    def visible(self):
+        return -Ring.WIDTH < self.x < WIN_WIDTH
+
+    def update(self, delta_frames=1):
+        self.x -= ANIMATION_SPEED * frames_to_millisecond(delta_frames)
+
+    @property
+    def rect(self):
+        return Rect(self.x, 10, Ring.WIDTH, Ring.HEIGHT)
+
+    def collides_with(self, bird, ring):
+        return pygame.sprite.collide_mask(bird, ring)
+    
+
 def load_images():
     # Load all images required by the game and return a dict of them.
 
@@ -191,7 +227,8 @@ def load_images():
             'pipe-end': load_image('pipe_end.png'),
             'pipe-body': load_image('pipe_body.png'),
             'bird_wing_up': load_image('bird_wing_up.png'),
-            'bird_wing_down': load_image('bird_wing_down.png')
+            'bird_wing_down': load_image('bird_wing_down.png'),
+            'ring': load_image('ring1.png')
             }
 
 
@@ -220,16 +257,14 @@ def button(msg, box_x_coordinate, box_y_coordinate, box_width, box_height, inact
                 main()
             elif action == "quit":
                 pygame.quit()
-                quit()
+                # quit()
     else:
         pygame.draw.rect(display_surface, inactive_colour, (box_x_coordinate, box_y_coordinate, box_width, box_height))
 
     small_text = pygame.font.Font("freesansbold.ttf", 20)
     text_surf, text_rect = text_objects(msg, small_text)
     text_rect.center = ((box_x_coordinate+(box_height/2)), (box_y_coordinate+(box_height/2)))
-    display_surface.blit(text_surf, text_rect)
-
-    
+    display_surface.blit(text_surf, text_rect)  
 
 
 def game_intro():
@@ -241,7 +276,7 @@ def game_intro():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                # quit()
         display_surface.fill(white)
 
         large_text=pygame.font.Font('freesansbold.ttf', 100)
@@ -269,6 +304,7 @@ def main():
                 (images['bird_wing_up'], images['bird_wing_down']))
 
     pipes=deque()
+    rings=deque()
 
     frame_clock=0
     score=0
@@ -279,6 +315,14 @@ def main():
         if not (paused or frame_clock % millisecond_to_frames(PipePair.ADD_INTERVAL)):
             pp=PipePair(images['pipe-end'], images['pipe-body'])
             pipes.append(pp)
+        
+        print(pipes[0].x) 
+        #if(pipes[0].x < 200 and not paused) :
+        if not (paused or frame_clock % millisecond_to_frames(Ring.ADD_INTERVAL)):
+            # create ring and add to ring queue
+            if(pipes[pipes.__len__()-1].x < 450):
+                rr = Ring(images['ring'])            
+                rings.append(rr)
 
         for e in pygame.event.get():
             if e.type == QUIT or (e.type == KEYUP and e.key == K_ESCAPE):
@@ -303,9 +347,17 @@ def main():
         while pipes and not pipes[0].visible:
             pipes.popleft()
 
+        # if the ring is not taken it should disappear after it leaves the screen
+        while rings and not rings[0].visible:
+            rings.popleft()
+
         for p in pipes:
             p.update()
             display_surface.blit(p.image, p.rect)
+
+        for r in rings:
+            r.update()
+            display_surface. blit(r.image, r.rect)
 
         bird.update()
         display_surface.blit(bird.image, bird.rect)
