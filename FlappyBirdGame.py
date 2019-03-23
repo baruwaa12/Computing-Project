@@ -323,7 +323,7 @@ def main():
         pygame.display.flip()
         frame_clock += 1
     print('Game over! Score: %i' % score)
-    pygame.quit()
+
 
 
 if __name__ == '__main__':
