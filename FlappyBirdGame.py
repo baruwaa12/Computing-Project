@@ -13,11 +13,20 @@ green = (0, 200, 0)
 bright_green = (0, 180, 0)
 bright_red = (230, 0, 0)
 
+pygame.init()
+ring_effect_file = os.path.join('.', 'sounds', 'SE_Ringb.wav')
+ring_touched_sound = pygame.mixer.Sound(ring_effect_file)
+
+background_music_file = os.path.join('.', 'sounds', 'backgroundmusic.wav')
+background_music = pygame.mixer_music.load('backgroundmusic.wav')
+
 # Appropriate music to be found and played.
 # PLAY BACKGROUND MUSIC
-# pygame.mixer_music.load("")
-# pygame.mixer_music.set_volume(0.5)
-# pygame.mixer_music.play(-1)
+background_music_file.load("backgroundmusic.wav")
+background_music.mixer_music.set_volume(0.5)
+background_music.mixer_music.play(-1)
+
+
 
 
 FPS = 60
@@ -263,7 +272,7 @@ def button(msg, box_x_coordinate, box_y_coordinate, box_width, box_height, inact
                 main()
             elif action == "quit":
                 pygame.quit()
-                # quit()
+            
     else:
         pygame.draw.rect(display_surface, inactive_colour, (box_x_coordinate, box_y_coordinate, box_width, box_height))
 
@@ -275,14 +284,13 @@ def button(msg, box_x_coordinate, box_y_coordinate, box_width, box_height, inact
 
 def game_intro():
 
-    pygame.init()
+
     intro=True
 
     while intro:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                # quit()
         display_surface.fill(white)
 
         large_text=pygame.font.Font('freesansbold.ttf', 100)
@@ -351,6 +359,7 @@ def main():
         for r in rings:
             touched = r.collides_with(bird, r)
             if touched != None:
+                pygame.mixer.Sound.play(ring_touched_sound)
                 r.touched = True
                 ring_counter += 1
             
