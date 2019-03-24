@@ -192,6 +192,7 @@ class Ring(pygame.sprite.Sprite):
         self.image = pygame.Surface((Ring.WIDTH, Ring.HEIGHT), SRCALPHA)
         self.image.convert()
         self.image.fill((0, 0, 0, 0))
+        self.touched = False
 
         # blit the ring.
         piece_pos = (10, 15)
@@ -202,7 +203,11 @@ class Ring(pygame.sprite.Sprite):
     
     @property
     def visible(self):
-        return -Ring.WIDTH < self.x < WIN_WIDTH
+        if(self.touched):
+            return False
+
+        stillOnScreen = -Ring.WIDTH < self.x < WIN_WIDTH
+        return stillOnScreen
 
     def update(self, delta_frames=1):
         self.x -= ANIMATION_SPEED * frames_to_millisecond(delta_frames)
@@ -285,7 +290,10 @@ def game_intro():
         text_rect.center=((WIN_WIDTH/2), (WIN_HEIGHT/2))
         display_surface.blit(text_surf, text_rect)
 
+        # Play Button
         button("GO", 100, 450, 80, 50, green, bright_green, "play")
+
+        # Quit button
         button("Quit", 400, 450, 80, 50, red, bright_red, "quit")
 
         pygame.display.update()
@@ -293,8 +301,7 @@ def game_intro():
 
 
 def main():
-    # The application's entry point
-
+   
     pygame.display.set_caption('Pygame Flappy Bird')
     score_font=pygame.font.SysFont(None, 32, bold = True)
     images=load_images()
@@ -316,9 +323,7 @@ def main():
         if not (paused or frame_clock % millisecond_to_frames(PipePair.ADD_INTERVAL)):
             pp=PipePair(images['pipe-end'], images['pipe-body'])
             pipes.append(pp)
-        
-        print(pipes[0].x) 
-        #if(pipes[0].x < 200 and not paused) :
+                
         if not (paused or frame_clock % millisecond_to_frames(Ring.ADD_INTERVAL)):
             # create ring and add to ring queue
             if(pipes[pipes.__len__()-1].x < 450):
@@ -338,10 +343,15 @@ def main():
         if paused:
             continue  # don't draw anything
 
-        vertical_out_of_bounds=any(p.collides_with(bird, p) for p in pipes)
-        if vertical_out_of_bounds or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
+        pipe_collision=any(p.collides_with(bird, p) for p in pipes)
+        if pipe_collision or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
             done=True
 
+        for r in rings:
+            touched = r.collides_with(bird, r)
+            if touched != None:
+                r.touched = True
+            
         for x in (0, WIN_WIDTH / 2):
             display_surface.blit(images['background'], (x, 0))
 
@@ -358,7 +368,7 @@ def main():
 
         for r in rings:
             r.update()
-            display_surface. blit(r.image, r.rect)
+            display_surface.blit(r.image, r.rect)
 
         bird.update()
         display_surface.blit(bird.image, bird.rect)
