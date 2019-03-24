@@ -316,6 +316,7 @@ def main():
 
     frame_clock=0
     score=0
+    ring_counter = 0
     done=paused=False
     while not done:
         clock.tick(FPS)
@@ -351,6 +352,7 @@ def main():
             touched = r.collides_with(bird, r)
             if touched != None:
                 r.touched = True
+                ring_counter += 1
             
         for x in (0, WIN_WIDTH / 2):
             display_surface.blit(images['background'], (x, 0))
@@ -379,9 +381,12 @@ def main():
                 score += 1
                 p.score_counted=True
 
-        score_surface=score_font.render(str(score), True, (255, 255, 255))
+        score_surface = score_font.render('Pipes:  ' + str(score), True, (255, 255, 255))
         score_x=WIN_WIDTH/2 - score_surface.get_width()/2
         display_surface.blit(score_surface, (score_x, PipePair.PIECE_HEIGHT))
+
+        ring_score_surface = score_font.render('Rings:  ' + str(ring_counter), True, (255, 255, 255))
+        display_surface.blit(ring_score_surface, (score_x, PipePair.PIECE_HEIGHT + 30))
 
         pygame.display.flip()
         frame_clock += 1
