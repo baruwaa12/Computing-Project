@@ -1,5 +1,6 @@
 import math
 import os
+import sys
 from random import randint
 from collections import deque
 
@@ -13,11 +14,22 @@ green = (0, 200, 0)
 bright_green = (0, 180, 0)
 bright_red = (230, 0, 0)
 
+# Loading sound effect into memory
+pygame.init()
+ring_effect_file = os.path.join('.', 'sounds', 'SE_Ringb.wav')
+ring_touched_sound = pygame.mixer.Sound(ring_effect_file)
+
+# Loading the music file into memory
+# background_music_file = os.path.join('.', 'sounds', 'backgroundmusic1.wav')
+# background_music = pygame.mixer_music.load('backgroundmusic1.wav')
+
 # Appropriate music to be found and played.
 # PLAY BACKGROUND MUSIC
-# pygame.mixer_music.load("")
-# pygame.mixer_music.set_volume(0.5)
-# pygame.mixer_music.play(-1)
+# background_music_file.load("backgroundmusic1.wav")
+# background_music.mixer_music.set_volume(0.5)
+# background_music.mixer_music.play(-1)
+
+
 
 
 FPS = 60
@@ -62,8 +74,7 @@ class Bird(pygame.sprite.Sprite):
 
         if self.millisecond_to_climb > 0:
             fraction_climb_done = 1 - self.millisecond_to_climb/Bird.CLIMB_DURATION
-            self.y -= (Bird.CLIMB_SPEED * frames_to_millisecond(delta_frames) *
-                       (1 - math.cos(fraction_climb_done * math.pi)))
+            self.y -= v 
             self.millisecond_to_climb -= frames_to_millisecond(delta_frames)
         else:
             self.y += Bird.SINK_SPEED * frames_to_millisecond(delta_frames)
@@ -133,7 +144,7 @@ class PipePair(pygame.sprite.Sprite):
         self.bottom_pieces = randint(1, total_pipe_body_pieces)
         self.top_pieces = total_pipe_body_pieces - self.bottom_pieces
 
-    # bottom pipe
+    # bottom pipe position on the screen
         for i in range(1, self.bottom_pieces + 1):
             piece_pos = (0, WIN_HEIGHT - i * PipePair.PIECE_HEIGHT)
             self.image.blit(pipe_body_img, piece_pos)
@@ -142,7 +153,7 @@ class PipePair(pygame.sprite.Sprite):
                 0, bottom_pipe_end_y - PipePair.PIECE_HEIGHT)
             self.image.blit(pipe_end_img, bottom_end_piece_pos)
 
-    # top pipe
+    # top pipe position on the screen
         for i in range(self.top_pieces):
             self.image.blit(pipe_body_img, (0, i * PipePair.PIECE_HEIGHT))
         top_pipe_end_y = self.top_pieces
@@ -178,6 +189,48 @@ class PipePair(pygame.sprite.Sprite):
         return pygame.sprite.collide_mask(bird, pipe)
 
 
+class Ring(pygame.sprite.Sprite):
+    WIDTH = 70
+    HEIGHT = 70
+    PIPE_WIDTH = 80
+    ADD_INTERVAL = 2000
+
+    def __init__(self, ring_img):
+
+        self.y = randint(10, 400)
+        self.x = float(WIN_WIDTH - 1)
+        self.score_counted = False
+        self.image = pygame.Surface((Ring.WIDTH, Ring.HEIGHT), SRCALPHA)
+        self.image.convert()
+        self.image.fill((0, 0, 0, 0))
+        self.touched = False
+
+        # blit the ring to the screen
+        piece_pos = (10, 15)
+        self.image.blit(ring_img, piece_pos)
+
+        # for collision detection
+        self.mask = pygame.mask.from_surface(self.image)
+    
+    @property
+    def visible(self):
+        if(self.touched):
+            return False
+
+        stillOnScreen = -Ring.WIDTH < self.x < WIN_WIDTH
+        return stillOnScreen
+
+    def update(self, delta_frames=1):
+        self.x -= ANIMATION_SPEED * frames_to_millisecond(delta_frames)
+
+    @property
+    def rect(self):
+        return Rect(self.x, self.y, Ring.WIDTH, Ring.HEIGHT)
+
+    def collides_with(self, bird, ring):
+        return pygame.sprite.collide_mask(bird, ring)
+    
+
 def load_images():
     # Load all images required by the game and return a dict of them.
 
@@ -191,7 +244,8 @@ def load_images():
             'pipe-end': load_image('pipe_end.png'),
             'pipe-body': load_image('pipe_body.png'),
             'bird_wing_up': load_image('bird_wing_up.png'),
-            'bird_wing_down': load_image('bird_wing_down.png')
+            'bird_wing_down': load_image('bird_wing_down.png'),
+            'ring': load_image('ring1.png')
             }
 
 
@@ -212,7 +266,7 @@ def button(msg, box_x_coordinate, box_y_coordinate, box_width, box_height, inact
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed() 
 
-
+    # Determine whether the mouse is within the both buttons area and which actions should happen as a result
     if (box_width + box_x_coordinate) > mouse[0] > box_x_coordinate and (box_height + box_y_coordinate) > mouse[1] > box_y_coordinate:
         pygame.draw.rect(display_surface, active_colour, (box_x_coordinate, box_y_coordinate, box_width, box_height))
         if click[0] == 1 and action != None:
@@ -220,36 +274,37 @@ def button(msg, box_x_coordinate, box_y_coordinate, box_width, box_height, inact
                 main()
             elif action == "quit":
                 pygame.quit()
-                quit()
+                exit(0)
+            
     else:
         pygame.draw.rect(display_surface, inactive_colour, (box_x_coordinate, box_y_coordinate, box_width, box_height))
 
     small_text = pygame.font.Font("freesansbold.ttf", 20)
     text_surf, text_rect = text_objects(msg, small_text)
     text_rect.center = ((box_x_coordinate+(box_height/2)), (box_y_coordinate+(box_height/2)))
-    display_surface.blit(text_surf, text_rect)
-
-    
+    display_surface.blit(text_surf, text_rect)  
 
 
 def game_intro():
 
-    pygame.init()
     intro=True
 
     while intro:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
         display_surface.fill(white)
 
+        # Attributes for menu screen
         large_text=pygame.font.Font('freesansbold.ttf', 100)
         text_surf, text_rect=text_objects("Flappy Bird", large_text)
         text_rect.center=((WIN_WIDTH/2), (WIN_HEIGHT/2))
         display_surface.blit(text_surf, text_rect)
 
+        # Play Button
         button("GO", 100, 450, 80, 50, green, bright_green, "play")
+
+        # Quit button
         button("Quit", 400, 450, 80, 50, red, bright_red, "quit")
 
         pygame.display.update()
@@ -257,8 +312,7 @@ def game_intro():
 
 
 def main():
-    # The application's entry point
-
+   
     pygame.display.set_caption('Pygame Flappy Bird')
     score_font=pygame.font.SysFont(None, 32, bold = True)
     images=load_images()
@@ -269,17 +323,27 @@ def main():
                 (images['bird_wing_up'], images['bird_wing_down']))
 
     pipes=deque()
+    rings=deque()
 
     frame_clock=0
     score=0
+    ring_counter = 0
     done=paused=False
     while not done:
         clock.tick(FPS)
 
+        # Images used when a pipe pair is displayed on screen
         if not (paused or frame_clock % millisecond_to_frames(PipePair.ADD_INTERVAL)):
             pp=PipePair(images['pipe-end'], images['pipe-body'])
             pipes.append(pp)
+                
+        if not (paused or frame_clock % millisecond_to_frames(Ring.ADD_INTERVAL)):
+            # create ring and add to ring queue
+            if(pipes[pipes.__len__()-1].x < 450):
+                rr = Ring(images['ring'])            
+                rings.append(rr)
 
+        # All keys used in game are shown here
         for e in pygame.event.get():
             if e.type == QUIT or (e.type == KEYUP and e.key == K_ESCAPE):
                 done=True
@@ -293,19 +357,37 @@ def main():
         if paused:
             continue  # don't draw anything
 
-        vertical_out_of_bounds=any(p.collides_with(bird, p) for p in pipes)
-        if vertical_out_of_bounds or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
+        pipe_collision=any(p.collides_with(bird, p) for p in pipes)
+        if pipe_collision or 0 >= bird.y or bird.y >= WIN_HEIGHT - Bird.HEIGHT:
             done=True
 
+        # When the ring is touched a sound effect should play and the score counter should increase by 1
+        for r in rings:
+            touched = r.collides_with(bird, r)
+            if touched != None:
+                pygame.mixer.Sound.play(ring_touched_sound)
+                r.touched = True
+                ring_counter += 1
+            
+        # displaying the background image to the screen
         for x in (0, WIN_WIDTH / 2):
             display_surface.blit(images['background'], (x, 0))
 
+        # When the pipe is not visible on the screen it should disappear
         while pipes and not pipes[0].visible:
             pipes.popleft()
+
+        # if the ring is not taken it should disappear after it leaves the screen
+        while rings and not rings[0].visible:
+            rings.popleft()
 
         for p in pipes:
             p.update()
             display_surface.blit(p.image, p.rect)
+
+        for r in rings:
+            r.update()
+            display_surface.blit(r.image, r.rect)
 
         bird.update()
         display_surface.blit(bird.image, bird.rect)
@@ -316,9 +398,13 @@ def main():
                 score += 1
                 p.score_counted=True
 
-        score_surface=score_font.render(str(score), True, (255, 255, 255))
+        # Rendering score text on the screen 
+        score_surface = score_font.render('Pipes:  ' + str(score), True, (255, 255, 255))
         score_x=WIN_WIDTH/2 - score_surface.get_width()/2
         display_surface.blit(score_surface, (score_x, PipePair.PIECE_HEIGHT))
+
+        ring_score_surface = score_font.render('Rings:  ' + str(ring_counter), True, (255, 255, 255))
+        display_surface.blit(ring_score_surface, (score_x, PipePair.PIECE_HEIGHT + 30))
 
         pygame.display.flip()
         frame_clock += 1
